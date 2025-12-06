@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum FileType {
+  PROFILE_PHOTO
+  ADDITIONAL_PHOTO
+  NID_OR_PASSPORT
+  OTHER
+}
+
+enum SiblingType {
+  BROTHER
+  SISTER
+}
+
+enum RelativeType {
+  UNCLE
+  AUNT
+}
+
+model Candidate {
+  id                         Int                          @id @default(autoincrement())
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  fullName                   String?
+  gender                     String?
+  dateOfBirth                DateTime?
+  heightCm                   Float?
+  weightKg                   Float?
+  bloodGroupId               Int?
+  maritalStatusId            Int?
+  religionId                 Int?
+  casteId                    Int?
+  religiousPracticeLevelId   Int?
+  birthCountryId             Int?
+  birthCityId                Int?
+  currentCountryId           Int?
+  currentCityId              Int?
+  residencyStatusId          Int?
+  occupationId               Int?
+  occupationType             String?
+  workplaceCountryId         Int?
+  workplaceCityId            Int?
+  incomeRangeId              Int?
+  highestEducationLevelId    Int?
+  familyFinancialStatusId    Int?
+  familyTypeId               Int?
+  smokingHabitId             Int?
+  drinkingHabitId            Int?
+  whatsappNumber             String?
+  primaryContactNumber       String?
+  contactEmail               String?
+  aboutMe                    String?
+
+  bloodGroup                 BloodGroup?                  @relation(fields: [bloodGroupId], references: [id])
+  maritalStatus              MaritalStatus?               @relation(fields: [maritalStatusId], references: [id])
+  religion                   Religion?                    @relation(fields: [religionId], references: [id])
+  caste                      Caste?                       @relation(fields: [casteId], references: [id])
+  religiousPracticeLevel     ReligiousPracticeLevel?      @relation(fields: [religiousPracticeLevelId], references: [id])
+  birthCountry               Country?                     @relation("BirthCountry", fields: [birthCountryId], references: [id])
+  birthCity                  City?                        @relation("BirthCity", fields: [birthCityId], references: [id])
+  currentCountry             Country?                     @relation("CurrentCountry", fields: [currentCountryId], references: [id])
+  currentCity                City?                        @relation("CurrentCity", fields: [currentCityId], references: [id])
+  residencyStatus            ResidencyStatus?             @relation(fields: [residencyStatusId], references: [id])
+  occupation                 Occupation?                  @relation(fields: [occupationId], references: [id])
+  workplaceCountry           Country?                     @relation("WorkplaceCountry", fields: [workplaceCountryId], references: [id])
+  workplaceCity              City?                        @relation("WorkplaceCity", fields: [workplaceCityId], references: [id])
+  incomeRange                IncomeRange?                 @relation(fields: [incomeRangeId], references: [id])
+  highestEducationLevel      EducationLevel?              @relation(fields: [highestEducationLevelId], references: [id])
+  familyFinancialStatus      FamilyFinancialStatus?       @relation(fields: [familyFinancialStatusId], references: [id])
+  familyType                 FamilyType?                  @relation(fields: [familyTypeId], references: [id])
+  smokingHabit               SmokingHabit?                @relation(fields: [smokingHabitId], references: [id])
+  drinkingHabit              DrinkingHabit?               @relation(fields: [drinkingHabitId], references: [id])
+
+  children                   CandidateChild[]
+  siblings                   CandidateSibling[]
+  maternalRelatives          CandidateMaternalRelative[]
+  paternalRelatives          CandidatePaternalRelative[]
+  educationEntries           CandidateEducationEntry[]
+  hobbies                    CandidateHobby[]
+  files                      CandidateFile[]
+  partnerExpectation         CandidatePartnerExpectation?
+}
+
+model CandidateChild {
+  id          Int       @id @default(autoincrement())
+  candidateId Int
+  name        String?
+  gender      String?
+  ageYears    Int?
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
+
+model CandidateSibling {
+  id                 Int          @id @default(autoincrement())
+  candidateId        Int
+  type               SiblingType
+  isElder            Boolean?
+  maritalStatusId    Int?
+  occupationId       Int?
+  workplaceCountryId Int?
+  workplaceCityId    Int?
+
+  candidate          Candidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  maritalStatus      MaritalStatus? @relation(fields: [maritalStatusId], references: [id])
+  occupation         Occupation?   @relation(fields: [occupationId], references: [id])
+  workplaceCountry   Country?      @relation("SiblingWorkplaceCountry", fields: [workplaceCountryId], references: [id])
+  workplaceCity      City?         @relation("SiblingWorkplaceCity", fields: [workplaceCityId], references: [id])
+}
+
+model CandidateMaternalRelative {
+  id                 Int          @id @default(autoincrement())
+  candidateId        Int
+  type               RelativeType
+  occupationId       Int?
+  workplaceCountryId Int?
+  workplaceCityId    Int?
+
+  candidate          Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  occupation         Occupation? @relation(fields: [occupationId], references: [id])
+  workplaceCountry   Country?    @relation("MaternalWorkplaceCountry", fields: [workplaceCountryId], references: [id])
+  workplaceCity      City?       @relation("MaternalWorkplaceCity", fields: [workplaceCityId], references: [id])
+}
+
+model CandidatePaternalRelative {
+  id                 Int          @id @default(autoincrement())
+  candidateId        Int
+  type               RelativeType
+  occupationId       Int?
+  workplaceCountryId Int?
+  workplaceCityId    Int?
+
+  candidate          Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  occupation         Occupation? @relation(fields: [occupationId], references: [id])
+  workplaceCountry   Country?    @relation("PaternalWorkplaceCountry", fields: [workplaceCountryId], references: [id])
+  workplaceCity      City?       @relation("PaternalWorkplaceCity", fields: [workplaceCityId], references: [id])
+}
+
+model CandidateEducationEntry {
+  id                 Int           @id @default(autoincrement())
+  candidateId        Int
+  educationLevelId   Int
+  institution        String?
+  boardOrUniversity  String?
+  fieldOfStudy       String?
+  result             String?
+  passingYear        Int?
+  isOngoing          Boolean      @default(false)
+
+  candidate          Candidate      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  educationLevel     EducationLevel @relation(fields: [educationLevelId], references: [id])
+}
+
+model CandidateHobby {
+  id          Int      @id @default(autoincrement())
+  candidateId Int
+  hobbyId     Int
+  details     String?
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  hobby       Hobby     @relation(fields: [hobbyId], references: [id])
+}
+
+model CandidatePartnerExpectation {
+  id                              Int                     @id @default(autoincrement())
+  candidateId                     Int                     @unique
+  preferredMinAge                 Int?
+  preferredMaxAge                 Int?
+  preferredMinHeightCm            Float?
+  preferredMaxHeightCm            Float?
+  preferredOccupationId           Int?
+  preferredCountryId              Int?
+  preferredCityId                 Int?
+  preferredResidencyStatusId      Int?
+  preferredReligiousPracticeLevelId Int?
+  preferredMaritalStatusId        Int?
+  preferredEducationLevelId       Int?
+  preferredFamilyFinancialStatusId Int?
+  preferredFamilyTypeId           Int?
+  acceptDivorceeWithChildren      Boolean?
+  expectationNotes                String?
+
+  candidate                       Candidate                 @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  preferredOccupation             Occupation?               @relation(fields: [preferredOccupationId], references: [id])
+  preferredCountry                Country?                  @relation("PreferredCountry", fields: [preferredCountryId], references: [id])
+  preferredCity                   City?                     @relation("PreferredCity", fields: [preferredCityId], references: [id])
+  preferredResidencyStatus        ResidencyStatus?          @relation(fields: [preferredResidencyStatusId], references: [id])
+  preferredReligiousPracticeLevel ReligiousPracticeLevel?   @relation(fields: [preferredReligiousPracticeLevelId], references: [id])
+  preferredMaritalStatus          MaritalStatus?            @relation(fields: [preferredMaritalStatusId], references: [id])
+  preferredEducationLevel         EducationLevel?           @relation(fields: [preferredEducationLevelId], references: [id])
+  preferredFamilyFinancialStatus  FamilyFinancialStatus?    @relation(fields: [preferredFamilyFinancialStatusId], references: [id])
+  preferredFamilyType             FamilyType?               @relation(fields: [preferredFamilyTypeId], references: [id])
+}
+
+model CandidateFile {
+  id           Int       @id @default(autoincrement())
+  candidateId  Int
+  fileType     FileType
+  path         String
+  originalName String?
+  mimeType     String?
+
+  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
+
+model Country {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  nameBn    String?
+  isoCode   String?
+  cities    City[]
+  preferredByCandidates CandidatePartnerExpectation[] @relation("PreferredCountry")
+}
+
+model City {
+  id             Int     @id @default(autoincrement())
+  name           String
+  nameBn         String?
+  stateOrRegion  String?
+  countryId      Int
+
+  country        Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  candidatesBorn Candidate[]       @relation("BirthCity")
+  candidatesLive Candidate[]       @relation("CurrentCity")
+  workplaceCandidates Candidate[]  @relation("WorkplaceCity")
+  siblingWorkplaces CandidateSibling[] @relation("SiblingWorkplaceCity")
+  maternalWorkplaces CandidateMaternalRelative[] @relation("MaternalWorkplaceCity")
+  paternalWorkplaces CandidatePaternalRelative[] @relation("PaternalWorkplaceCity")
+  partnerCityExpectations CandidatePartnerExpectation[] @relation("PreferredCity")
+
+  @@unique([name, countryId])
+}
+
+model Occupation {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  nameBn String?
+}
+
+model IncomeRange {
+  id         Int     @id @default(autoincrement())
+  label      String  @unique
+  labelBn    String?
+  minValue   Float?
+  maxValue   Float?
+}
+
+model Religion {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  nameBn String?
+  castes Caste[]
+}
+
+model Caste {
+  id         Int      @id @default(autoincrement())
+  name       String
+  nameBn     String?
+  religionId Int
+
+  religion   Religion @relation(fields: [religionId], references: [id], onDelete: Cascade)
+  candidates Candidate[]
+
+  @@unique([name, religionId])
+}
+
+model ReligiousPracticeLevel {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+}
+
+model FamilyFinancialStatus {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+}
+
+model FamilyType {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+}
+
+model SmokingHabit {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+}
+
+model DrinkingHabit {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+}
+
+model EducationLevel {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+  entries CandidateEducationEntry[]
+}
+
+model Hobby {
+  id      Int     @id @default(autoincrement())
+  name    String  @unique
+  nameBn  String?
+  candidates CandidateHobby[]
+}
+
+model ResidencyStatus {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+  candidates Candidate[]
+}
+
+model MaritalStatus {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+  candidates Candidate[]
+}
+
+model BloodGroup {
+  id      Int     @id @default(autoincrement())
+  label   String  @unique
+  labelBn String?
+  candidates Candidate[]
+}
